@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-organization-onboarding-steps
+      author: system
+      changes:
+        - createTable:
+            tableName: organization_onboarding_steps
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: organization_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: step
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completed_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: organization_onboarding_steps
+            baseColumnNames: organization_id
+            constraintName: fk_org_onboarding_org
+            referencedTableName: organizations
+            referencedColumnNames: id
+            onDelete: CASCADE
+            
+        - createIndex:
+            tableName: organization_onboarding_steps
+            indexName: idx_org_onboarding_org_step
+            unique: true
+            columns:
+              - column:
+                  name: organization_id
+              - column:
+                  name: step
+            
+        - createIndex:
+            tableName: organization_onboarding_steps
+            indexName: idx_org_onboarding_org_id
+            columns:
+              - column:
+                  name: organization_id
+              
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            stripComments: true
+            sql: |
+              CREATE OR REPLACE FUNCTION update_updated_at_column()
+              RETURNS TRIGGER AS $$
+              BEGIN
+                  NEW.updated_at = NOW();
+                  RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              CREATE TRIGGER update_organization_onboarding_steps_updated_at
+              BEFORE UPDATE ON organization_onboarding_steps
+              FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

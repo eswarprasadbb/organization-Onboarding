@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017-01
+      author: cascade
+      changes:
+        - createTable:
+            tableName: oauth_providers
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true}}
+              - column: {name: name, type: VARCHAR(50), constraints: {nullable: false}}
+              - column: {name: client_id, type: TEXT, constraints: {nullable: false}}
+              - column: {name: client_secret, type: TEXT, constraints: {nullable: false}}
+              - column: {name: auth_url, type: TEXT, constraints: {nullable: false}}
+              - column: {name: token_url, type: TEXT, constraints: {nullable: false}}
+              - column: {name: scopes, type: TEXT}
+              - column: {name: active, type: BOOLEAN, defaultValueBoolean: true}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: CURRENT_TIMESTAMP}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: CURRENT_TIMESTAMP}
+        - addUniqueConstraint:
+            tableName: oauth_providers
+            columnNames: name
+            constraintName: uq_oauth_provider_name

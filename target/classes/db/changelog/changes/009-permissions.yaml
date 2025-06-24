@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-01
+      author: cascade
+      changes:
+        - createTable:
+            tableName: permissions
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true}}
+              - column: {name: name, type: varchar(150), constraints: {nullable: false}}
+              - column: {name: description, type: varchar(255)}
+              - column: {name: created_at, type: timestamp, defaultValueComputed: CURRENT_TIMESTAMP}
+              - column: {name: updated_at, type: timestamp}
+        - addUniqueConstraint:
+            tableName: permissions
+            columnNames: name
+            constraintName: uq_permission_name
+  - changeSet:
+      id: 009-02
+      author: cascade
+      changes:
+        - createTable:
+            tableName: role_permissions
+            columns:
+              - column: {name: role_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: permission_id, type: UUID, constraints: {nullable: false}}
+        - addPrimaryKey:
+            constraintName: pk_role_permissions
+            columnNames: role_id,permission_id
+            tableName: role_permissions
+        - addForeignKeyConstraint:
+            constraintName: fk_role_perm_role
+            baseTableName: role_permissions
+            baseColumnNames: role_id
+            referencedTableName: roles
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: fk_role_perm_perm
+            baseTableName: role_permissions
+            baseColumnNames: permission_id
+            referencedTableName: permissions
+            referencedColumnNames: id
+            onDelete: CASCADE

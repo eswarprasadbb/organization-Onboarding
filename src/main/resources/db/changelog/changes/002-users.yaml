@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-01
+      author: cascade
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true}}
+              - column: {name: first_name, type: varchar(100), constraints: {nullable: false}}
+              - column: {name: last_name, type: varchar(100), constraints: {nullable: false}}
+              - column: {name: email, type: varchar(255), constraints: {nullable: false}}
+              - column: {name: phone, type: varchar(50)}
+              - column: {name: password_hash, type: varchar(255), constraints: {nullable: false}}
+              - column: {name: email_verified, type: boolean, defaultValueBoolean: false}
+              - column: {name: email_verification_token, type: varchar(255)}
+              - column: {name: email_verified_at, type: timestamp}
+              - column: {name: two_factor_enabled, type: boolean, defaultValueBoolean: false}
+              - column: {name: two_factor_secret, type: varchar(255)}
+              - column: {name: last_login_at, type: timestamp}
+              - column: {name: login_attempts, type: int, defaultValueNumeric: 0}
+              - column: {name: locked_until, type: timestamp}
+              - column: {name: avatar_url, type: varchar(500)}
+              - column: {name: job_title, type: varchar(100)}
+              - column: {name: department, type: varchar(100)}
+              - column: {name: timezone, type: varchar(100), defaultValue: 'UTC'}
+              - column: {name: language, type: varchar(5), defaultValue: 'en'}
+              - column: {name: notification_preferences, type: jsonb}
+              - column: {name: created_at, type: timestamp, defaultValueComputed: CURRENT_TIMESTAMP}
+              - column: {name: updated_at, type: timestamp}
+              - column: {name: status, type: varchar(20), defaultValue: 'ACTIVE'}
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: email
+            constraintName: uq_user_email
+        - createIndex:
+            tableName: users
+            indexName: idx_user_status
+            columns:
+              - column: {name: status}

@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012-01
+      author: cascade
+      changes:
+        - createTable:
+            tableName: api_call_logs
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true}}
+              - column: {name: user_id, type: UUID}
+              - column: {name: organization_id, type: UUID}
+              - column: {name: method, type: varchar(10), constraints: {nullable: false}}
+              - column: {name: path, type: varchar(500), constraints: {nullable: false}}
+              - column: {name: status_code, type: int}
+              - column: {name: duration_ms, type: bigint}
+              - column: {name: ip_address, type: varchar(50)}
+              - column: {name: created_at, type: timestamp, defaultValueComputed: CURRENT_TIMESTAMP}
+        - addForeignKeyConstraint:
+            constraintName: fk_api_call_user
+            baseTableName: api_call_logs
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            constraintName: fk_api_call_org
+            baseTableName: api_call_logs
+            baseColumnNames: organization_id
+            referencedTableName: organizations
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: api_call_logs
+            indexName: idx_api_call_user
+            columns:
+              - column: {name: user_id}
+        - createIndex:
+            tableName: api_call_logs
+            indexName: idx_api_call_org
+            columns:
+              - column: {name: organization_id}
+        - createIndex:
+            tableName: api_call_logs
+            indexName: idx_api_call_path
+            columns:
+              - column: {name: path}

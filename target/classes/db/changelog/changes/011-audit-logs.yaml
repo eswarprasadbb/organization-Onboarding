@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-01
+      author: cascade
+      changes:
+        - createTable:
+            tableName: audit_logs
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true}}
+              - column: {name: actor_user_id, type: UUID}
+              - column: {name: entity, type: varchar(100), constraints: {nullable: false}}
+              - column: {name: entity_id, type: UUID}
+              - column: {name: action, type: varchar(20), constraints: {nullable: false}}
+              - column: {name: details, type: jsonb}
+              - column: {name: ip_address, type: varchar(50)}
+              - column: {name: created_at, type: timestamp, defaultValueComputed: CURRENT_TIMESTAMP}
+        - addForeignKeyConstraint:
+            constraintName: fk_audit_user
+            baseTableName: audit_logs
+            baseColumnNames: actor_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_entity
+            columns:
+              - column: {name: entity}
+        - createIndex:
+            tableName: audit_logs
+            indexName: idx_audit_user
+            columns:
+              - column: {name: actor_user_id}
