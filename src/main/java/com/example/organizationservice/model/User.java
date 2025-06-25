@@ -47,12 +47,12 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String password;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "authority")
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default
-    private Set<String> authorities = new HashSet<>();
+    private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -112,8 +112,19 @@ public class User {
     @Builder.Default
     private Instant updatedAt = null;
 
+    /**
+     * Convenience accessor returning ROLE_ and permission names so legacy code
+     * that previously relied on plain-string authorities continues to work.
+     */
     public Set<String> getAuthorities() {
-        return authorities;
+        java.util.Set<String> auths = new java.util.HashSet<>();
+        for (Role r : roles) {
+            auths.add("ROLE_" + r.getName());
+            if (r.getPermissions() != null) {
+                r.getPermissions().forEach(p -> auths.add(p.getName()));
+            }
+        }
+        return auths;
     }
 
     public enum UserStatus { ACTIVE, INACTIVE, SUSPENDED, DELETED }

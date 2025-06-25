@@ -97,7 +97,7 @@ public class AuthController {
                 Map.of(
                     "userId", existingToken.getUser().getId(),
                     "email", existingToken.getUser().getEmail(),
-                    "roles", existingToken.getUser().getAuthorities().stream().toList()
+                    "roles", existingToken.getUser().getRoles().stream().map(r -> r.getName()).toList()
                 )
             );
 
