@@ -6,6 +6,8 @@ import com.example.organizationservice.mapper.OrganizationMapper;
 import com.example.organizationservice.model.Organization;
 import com.example.organizationservice.repository.OrganizationRepository;
 import com.example.organizationservice.repository.RoleRepository;
+import com.example.organizationservice.repository.PermissionRepository;
+import com.example.organizationservice.model.Permission;
 import com.example.organizationservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class OrganizationService {
     private final OrganizationRepository repository;
     private final OrganizationMapper mapper;
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
 
     public List<OrganizationDto> getAll() {
@@ -42,6 +45,8 @@ public class OrganizationService {
                     .name("OWNER")
                     .organization(savedOrg)
                     .build();
+            // attach every existing permission
+            ownerRole.setPermissions(new java.util.HashSet<>(permissionRepository.findAll()));
             roleRepository.save(ownerRole);
 
             // link current authenticated user as OWNER, if present

@@ -2,6 +2,7 @@ package com.example.organizationservice.controller;
 
 import com.example.organizationservice.model.RefreshToken;
 import com.example.organizationservice.repository.RefreshTokenRepository;
+import com.example.organizationservice.model.Permission;
 import com.example.organizationservice.repository.UserRepository;
 import com.example.organizationservice.security.JwtProperties;
 import com.example.organizationservice.security.JwtTokenProvider;
@@ -56,11 +57,11 @@ public class AuthController {
             String accessToken = tokenProvider.generateToken(
                 user.getEmail(),
                 Map.of(
-                    "userId", user.getId().toString(),
+                    "userId", user.getId(),
                     "email", user.getEmail(),
-                    "roles", userDetails.getAuthorities().stream()
-                        .map(a -> a.getAuthority())
-                        .toArray(String[]::new)
+                    "authorities", userDetails.getAuthorities().stream()
+                            .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                            .toList()
                 )
             );
             String refreshToken = tokenProvider.generateRefreshToken(user.getId());
@@ -97,7 +98,14 @@ public class AuthController {
                 Map.of(
                     "userId", existingToken.getUser().getId(),
                     "email", existingToken.getUser().getEmail(),
-                    "roles", existingToken.getUser().getRoles().stream().map(r -> r.getName()).toList()
+                    "authorities", existingToken.getUser().getRoles().stream()
+                            .flatMap(role -> {
+                                java.util.stream.Stream<String> roleAuth = java.util.stream.Stream.of("ROLE_" + role.getName());
+                                java.util.stream.Stream<String> permAuth = role.getPermissions() == null ?
+                                        java.util.stream.Stream.empty() :
+                                        role.getPermissions().stream().map(Permission::getName);
+                                return java.util.stream.Stream.concat(roleAuth, permAuth);
+                            }).toList()
                 )
             );
 
@@ -120,6 +128,17 @@ public class AuthController {
     }
 
     public record LoginResponse(String accessToken, String refreshToken, String tokenType) {
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        RefreshToken token = refreshTokenRepository.findByToken(request.refreshToken())
+                .orElse(null);
+        if (token != null) {
+            token.setRevoked(true);
+            refreshTokenRepository.save(token);
+        }
+        return ResponseEntity.ok().build();
     }
 
     public record RefreshTokenRequest(String refreshToken) {
