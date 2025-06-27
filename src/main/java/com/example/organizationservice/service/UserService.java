@@ -2,6 +2,7 @@ package com.example.organizationservice.service;
 
 import com.example.organizationservice.dto.UserDto;
 import com.example.organizationservice.mapper.UserMapper;
+import com.example.organizationservice.dto.UserAuthoritiesDto;
 import com.example.organizationservice.model.User;
 import com.example.organizationservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,20 @@ public class UserService {
         existing.setLanguage(dto.getLanguage());
         existing.setPreferences(dto.getNotificationPreferences());
         return userMapper.toDto(userRepository.save(existing));
+    }
+
+    public UserAuthoritiesDto getAuthorities(UUID id) {
+        User user = userRepository.findById(id).orElseThrow();
+        UserAuthoritiesDto dto = new UserAuthoritiesDto();
+        dto.setUserId(id);
+        dto.setRoles(user.getRoles().stream().map(r -> "ROLE_" + r.getName()).toList());
+        dto.setPermissions(user.getRoles().stream()
+                .filter(role -> role.getPermissions() != null)
+                .flatMap(role -> role.getPermissions().stream())
+                .map(permission -> permission.getName())
+                .distinct()
+                .toList());
+        return dto;
     }
 
     public void delete(UUID id) {

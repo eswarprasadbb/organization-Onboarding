@@ -2,6 +2,7 @@ package com.example.organizationservice.controller;
 
 import com.example.organizationservice.dto.UserDto;
 import com.example.organizationservice.service.UserService;
+import com.example.organizationservice.dto.UserAuthoritiesDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,11 @@ public class UserController {
     @PutMapping("/{id}")
     public UserDto update(@PathVariable("id") UUID id, @RequestBody UserDto dto) {
         return userService.update(id, dto);
+    }
+
+    @GetMapping("/{id}/authorities")
+    public UserAuthoritiesDto authorities(@PathVariable("id") UUID id) {
+        return userService.getAuthorities(id);
     }
 
     @DeleteMapping("/{id}")

@@ -34,6 +34,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new com.example.organizationservice.security.RestAuthenticationEntryPoint())
+                        .accessDeniedHandler(new com.example.organizationservice.security.RestAccessDeniedHandler()))
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -42,11 +45,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         // onboarding & tenant endpoints
                         .requestMatchers(HttpMethod.POST, "/api/organizations").authenticated()
-                        .requestMatchers("/api/organizations/*/members/**").hasAnyRole("OWNER","ADMIN")
-                        .requestMatchers("/api/organizations/**").hasAnyRole("OWNER","ADMIN","MEMBER")
+                        .requestMatchers("/api/organizations/*/members/**").authenticated()
+                        .requestMatchers("/api/organizations/*/roles/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/organizations/**").hasAuthority("ORG_READ")
+                        .requestMatchers("/api/organizations/**").hasAnyAuthority("ORG_CREATE","ORG_UPDATE","ORG_DELETE")
                         // system admin endpoints
-                        .requestMatchers("/api/system/**", "/api/permissions/**", "/api/roles/**", "/api/system-settings/**", "/api/audit-logs/**", "/api/api-call-logs/**").hasRole("SYSTEM_ADMIN")
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/system/**", "/api/permissions/**", "/api/roles/**", "/api/system-settings/**", "/api/audit-logs/**", "/api/api-call-logs/**").authenticated()
+                        .requestMatchers("/api/**").hasRole("OWNER")
+                        .anyRequest().denyAll())
                 .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
